@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { db, auth } from "../../lib/firebase";
+import { useEffect, useState } from "react";
+import { auth, db } from "../../lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -9,14 +9,13 @@ import Link from "next/link";
 interface ItemOrder {
   tipe: "Menerima" | "Melayani";
   layanan: string;
-  jumlah: number; // kg untuk Menerima, pcs untuk Melayani
+  jumlah: number;
   hargaSatuan: number;
   total: number;
 }
 
 export default function OrderPage() {
   const router = useRouter();
-
   const [nama, setNama] = useState("");
   const [alamat, setAlamat] = useState("");
   const [telp, setTelp] = useState("");
@@ -29,7 +28,7 @@ export default function OrderPage() {
   const [statusMsg, setStatusMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔐 cek login
+  // cek login
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (!user) router.push("/login");
@@ -37,7 +36,6 @@ export default function OrderPage() {
     return () => unsubscribe();
   }, [router]);
 
-  // Daftar layanan & harga
   const menerima = [
     { name: "Cuci + Setrika", price: 6000 },
     { name: "Cuci Kering", price: 5000 },
@@ -71,8 +69,6 @@ export default function OrderPage() {
     const total = hargaSatuan * jumlah;
     const newItem: ItemOrder = { tipe, layanan, jumlah, hargaSatuan, total };
     setItemOrders([...itemOrders, newItem]);
-
-    // reset input
     setLayanan("");
     setJumlah(1);
     setHargaSatuan(0);
@@ -104,7 +100,6 @@ export default function OrderPage() {
         createdAt: serverTimestamp(),
         userId: auth.currentUser?.uid,
       });
-      // redirect ke profile
       router.push("/profile");
     } catch (err) {
       console.error(err);
@@ -114,27 +109,26 @@ export default function OrderPage() {
     }
   };
 
-  // Live preview total per item
   const liveTotal = hargaSatuan * jumlah;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-6 flex justify-center">
-      <div className="w-full max-w-6xl flex gap-8">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-4 flex justify-center">
+      <div className="w-full max-w-6xl flex flex-col md:flex-row gap-6 relative">
         {/* Tombol Kembali */}
         <Link
           href="/"
-          className="absolute top-4 left-4 text-blue-600 hover:underline font-semibold"
+          className="absolute top-4 left-4 text-blue-600 hover:underline font-semibold z-10"
         >
           ← Kembali
         </Link>
 
-        {/* ===== KIRI: Ringkasan & Total ===== */}
-        <div className="w-1/2 bg-white shadow-xl rounded-2xl p-6 flex flex-col">
+        {/* KIRI: Ringkasan & Total */}
+        <div className="w-full md:w-1/2 bg-white shadow-xl rounded-2xl p-6 flex flex-col">
           <h2 className="text-2xl font-bold text-blue-700 mb-4">Ringkasan Pesanan</h2>
           {itemOrders.length === 0 ? (
             <p className="text-gray-500">Belum ada layanan ditambahkan.</p>
           ) : (
-            <div className="space-y-2 flex-1 overflow-y-auto">
+            <div className="space-y-2 flex-1 overflow-y-auto max-h-[60vh]">
               {itemOrders.map((item, index) => (
                 <div key={index} className="flex justify-between items-center border p-2 rounded">
                   <div>
@@ -163,8 +157,8 @@ export default function OrderPage() {
           </div>
         </div>
 
-        {/* ===== KANAN: Form Input ===== */}
-        <div className="w-1/2 bg-white shadow-xl rounded-2xl p-6 flex flex-col">
+        {/* KANAN: Form Input */}
+        <div className="w-full md:w-1/2 bg-white shadow-xl rounded-2xl p-6 flex flex-col">
           <h2 className="text-2xl font-bold text-blue-700 mb-4">Tambah Layanan</h2>
 
           <input
